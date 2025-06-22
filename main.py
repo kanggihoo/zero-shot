@@ -3,17 +3,18 @@ from pathlib import Path
 from natsort import natsorted
 import json
 import torch 
+import argparse
 
 from model_init import ZeroShotCLS
 from factory import CLIPImageDataProcessor , show_tensor
 from template import LABEL_TEMPLATES
 from utils import copy_files , move_files
 
-BASE_DIR = Path("__file__").parent.parent
+
 
 
 #REVIEW : 여러 제품에 대한 splited image를 만들고 이를 분류하는 코드 테스트 필요
-def classify_images(data, visualize=False, verbose=False):
+def classify_images(data, data_dir, visualize=False, verbose=False):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     zero_shot = ZeroShotCLS(model_name="MobileCLIP-S2" , pretrained_name="datacompdr" , device=device, is_inference=True)
     processor = CLIPImageDataProcessor(processor=zero_shot.preprocess, tokenizer=zero_shot.tokenizer, device=device)
@@ -26,7 +27,7 @@ def classify_images(data, visualize=False, verbose=False):
     category_sub = data["category_sub"]
     colors = "" if data["color_size_info"]["color"]=="one_color" else data["color_size_info"]["color"]
     
-    image_dir = BASE_DIR / category_main / str(category_sub) / str(product_id)
+    image_dir = data_dir / category_main / str(category_sub) / str(product_id)
     summary_images_dir = image_dir / "summary"
     segmented_images_dir = image_dir / "segment"
 
@@ -181,17 +182,30 @@ def classify_images(data, visualize=False, verbose=False):
     #     copy_files(clothes_model_back.abs_url , dst_dir = src_dir / "images" / "model" / "back")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Image Classification with CLIP')
+    parser.add_argument('--data_dir', type=str, required=True,
+                      help='Base directory path containing the image data')
+    parser.add_argument('--visualize', action='store_true',
+                      help='Enable visualization of results')
+    parser.add_argument('--verbose', action='store_true',
+                      help='Enable verbose output')
+    
+    args = parser.parse_args()
+    data_dir = Path(args.data_dir)
+    
     file_name = "musinsa_product_detail_상의_후드티셔츠_.json"
-    file_path = BASE_DIR / "data" / file_name
+    file_path = Path("__file__").parent / file_name
     
-    
-    with open(file_path , encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         data = json.load(f)
     
     test_data = data[1]
     print(test_data["product_id"])
-
-    # Set visualization and verbosity flags
-    classify_images(test_data, visualize=True, verbose=True)
+    
+    # Run classification with command line arguments
+    classify_images(test_data, 
+                   data_dir=data_dir,
+                   visualize=args.visualize, 
+                   verbose=args.verbose)
 
 
