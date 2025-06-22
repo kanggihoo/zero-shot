@@ -34,11 +34,30 @@ LABEL3_2_TEMPLATE = [
     "others"
 ]
 
+def create_color_templates(colors, category_main):
+    """
+    색상별 분류를 위한 템플릿을 동적으로 생성하는 함수
+    
+    Args:
+        colors (str or list): 콤마로 구분된 색상 문자열 또는 색상 리스트
+        category_main (str): 주 카테고리 (예: "상의")
+    Returns:
+        list: 생성된 템플릿 리스트
+    """
+    
+    templates = [
+        f"a photo of a {color} {category_main}"
+        for color in colors
+    ] + ["others"]
+    
+    return templates
+
 
 # 필요하다면 딕셔너리 형태로도 함께 제공 가능
 LABEL_TEMPLATES = {
     "image_content_style_label": LABEL1_TEMPLATE,
     "single_model_or_item_label": LABEL2_TEMPLATE,
     "model_view_label": LABEL3_1_TEMPLATE,
-    "clothing_view_label": LABEL3_2_TEMPLATE
+    "clothing_view_label": LABEL3_2_TEMPLATE,
+    "create_color_templates": create_color_templates  # 함수도 함께 export
 }
